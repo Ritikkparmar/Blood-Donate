@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import DonorCard from "@/components/DonorCard";
-import  BloodGroupFilter  from "@/components/BloodGroupFilter";
+import BloodGroupFilter from "@/components/BloodGroupFilter";
 
 interface Donor {
   id: number;
@@ -15,7 +15,6 @@ interface Donor {
   address: string;
 }
 
-
 const FindBlood: React.FC = () => {
   const [donors, setDonors] = useState<Donor[]>([]);
   const [filteredDonors, setFilteredDonors] = useState<Donor[]>([]);
@@ -26,8 +25,16 @@ const FindBlood: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await fetch("/api/DonorForm");
-        const data: { Donors: Donor[] } = await response.json();
-        setDonors(data.Donors);
+        const data = await response.json();
+        console.log("Fetched data:", data);
+
+        if (data && Array.isArray(data.Donors)) {
+          setDonors(data.Donors);
+        } else {
+          console.error("Invalid data format received:", data);
+          setDonors([]);
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -60,14 +67,14 @@ const FindBlood: React.FC = () => {
         />
       </div>
 
-      <div className="lg:wd-1/2">
+      <div className="lg:w-1/2">
         {loading ? (
           <div className="text-center mt-8">
             <h2 className="text-2xl font-semibold">Loading...</h2>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 mt-8 sm:w-full lg:grid-cols-2 xl:grid-cols-3">
-            {filteredDonors.map((donor) => (
+            {Array.isArray(filteredDonors) && filteredDonors.map((donor) => (
               <DonorCard key={donor.id} donor={donor} />
             ))}
           </div>
