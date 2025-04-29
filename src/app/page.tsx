@@ -5,7 +5,7 @@ import Script from 'next/script';
 import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
 import { usePathname } from 'next/navigation';
-import OrgList from "./orgs/page";
+
 const Page = () => {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
