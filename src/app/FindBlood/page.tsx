@@ -28,7 +28,7 @@ const FindBlood: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/DonorForm");
+        const response = await fetch("/api/donors");
         if (!response.ok) {
           throw new Error('Failed to fetch donors');
         }
