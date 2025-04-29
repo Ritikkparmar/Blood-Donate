@@ -37,12 +37,17 @@ const DonorForm = () => {
         body: JSON.stringify(dataToSend),
       });
 
-      console.log(dataToSend);
       const data = await response.json();
-      console.log("Data submitted successfully:", data);
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to register donor');
+      }
+
+      toast.success("Donor registered successfully");
       router.push("/");
     } catch (error) {
       console.error("Error submitting data:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to register donor");
     }
   };
 
@@ -305,7 +310,6 @@ const DonorForm = () => {
       <div className="mt-8 flex justify-center">
         <Toaster />
         <button
-          onClick={() => { toast.success('Donor added successfully'); }}
           type="submit"
           className="bg-red-700 hover:bg-red-800 transition-colors duration-300 text-white font-bold py-3 px-6 rounded-lg shadow-md disabled:opacity-50"
           disabled={!formik.isValid || !formik.dirty || !formik.values.isChecked}

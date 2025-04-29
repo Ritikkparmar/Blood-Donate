@@ -5,7 +5,7 @@ import DonorCard from "@/components/DonorCard";
 import BloodGroupFilter from "@/components/BloodGroupFilter";
 
 interface Donor {
-  id: number;
+  id: string;  // Changed to string as MongoDB uses string IDs
   firstName: string;
   lastName: string;
   gender: string;
@@ -13,31 +13,42 @@ interface Donor {
   age: number;
   phone: string;
   address: string;
+  state: string;
+  city: string;
+  email: string;
 }
 
 const FindBlood: React.FC = () => {
   const [donors, setDonors] = useState<Donor[]>([]);
   const [filteredDonors, setFilteredDonors] = useState<Donor[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [bloodGroupFilter, setBloodGroupFilter] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch("/api/DonorForm");
+        if (!response.ok) {
+          throw new Error('Failed to fetch donors');
+        }
+        
         const data = await response.json();
         console.log("Fetched data:", data);
 
-        if (data && Array.isArray(data.Donors)) {
-          setDonors(data.Donors);
+        if (data && data.success && Array.isArray(data.donors)) {
+          setDonors(data.donors);
+          setError(null);
         } else {
           console.error("Invalid data format received:", data);
+          setError("No donors found");
           setDonors([]);
         }
-
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setError(error instanceof Error ? error.message : "Failed to fetch donors");
+        setDonors([]);
+      } finally {
         setLoading(false);
       }
     };
@@ -58,28 +69,35 @@ const FindBlood: React.FC = () => {
   };
 
   return (
-    <div className="mb-10 overflow-x-hidden mx-5">
-      <div className="md:w-full lg:w-1/2 pr-4 lg:pr-8 xl:pr-16 mb-4 md:mb-0">
-        <h1 className="mt-8 text-4xl text-center">Donor's Information</h1>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">Find Blood Donors</h1>
+      
+      <div className="max-w-xl mx-auto mb-8">
         <BloodGroupFilter
           bloodGroupFilter={bloodGroupFilter}
           handleBloodGroupChange={handleBloodGroupChange}
         />
       </div>
 
-      <div className="lg:w-1/2">
-        {loading ? (
-          <div className="text-center mt-8">
-            <h2 className="text-2xl font-semibold">Loading...</h2>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 mt-8 sm:w-full lg:grid-cols-2 xl:grid-cols-3">
-            {Array.isArray(filteredDonors) && filteredDonors.map((donor) => (
-              <DonorCard key={donor.id} donor={donor} />
-            ))}
-          </div>
-        )}
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center min-h-[200px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-900"></div>
+        </div>
+      ) : error ? (
+        <div className="text-center text-red-600 py-8">
+          <p>{error}</p>
+        </div>
+      ) : filteredDonors.length === 0 ? (
+        <div className="text-center text-gray-600 py-8">
+          <p>No donors found for the selected blood group.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredDonors.map((donor) => (
+            <DonorCard key={donor.id} donor={donor} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

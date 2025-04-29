@@ -18,7 +18,7 @@ const DonorForm = () => {
     OrganisationEmail: Yup.string().email("Invalid email").required("Email is required"),
     OrganisationAddress: Yup.string().required("Organization Address is required"),
     OrganisationState: Yup.string().required("Organization State is required"),
-    OrganisationCity: Yup.string(),
+    OrganisationCity: Yup.string().required("Organization City is required"),
     isChecked: Yup.boolean().oneOf([true], "You must confirm the details are correct"),
   });
 
@@ -34,11 +34,16 @@ const DonorForm = () => {
       });
 
       const data = await response.json();
-      console.log("Data submitted successfully:", data);
-      toast.success("Organisation added successfully");
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to register organization');
+      }
+
+      toast.success("Organization registered successfully");
       router.push("/");
     } catch (error) {
       console.error("Error submitting data:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to register organization");
     }
   };
 
@@ -166,6 +171,22 @@ const DonorForm = () => {
         </select>
         {formik.touched.OrganisationState && formik.errors.OrganisationState && (
           <div className="text-red-600">{formik.errors.OrganisationState}</div>
+        )}
+
+        <label htmlFor="OrganisationCity">City {compulsory}</label>
+        <input
+          type="text"
+          id="OrganisationCity"
+          name="OrganisationCity"
+          value={formik.values.OrganisationCity}
+          onChange={handleInputChange}
+          onBlur={formik.handleBlur}
+          className="pl-2 border-2 border-gray-300 hover:border-red-800 h-10 w-full"
+          placeholder="Organisation City"
+          required
+        />
+        {formik.touched.OrganisationCity && formik.errors.OrganisationCity && (
+          <div className="text-red-600">{formik.errors.OrganisationCity}</div>
         )}
       </div>
 
